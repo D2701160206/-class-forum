@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang='zh-cn'>
+
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <title></title>
+
+    <!-- Bootstrap -->
+    <link href='/css/bootstrap.css' rel='stylesheet'>
+    <style>
+        body {
+            background: url("/img/bg.jpg") no-repeat;
+            color: white;
+        }
+
+        a {
+            text-decoration: none;
+            color: orange;
+        }
+        a:hover{
+            color:  seashell;
+        }
+        .box {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 80%;
+            height: 400px;
+            /* background-color: #ccc; */
+            background-color: rgba(255, 255, 255, 0.1);
+            margin: 0px auto;
+        }
+
+        .userinfo {
+            width: 400px;
+            margin-top: -249px;
+        }
+        .left{
+            float: left;
+        }
+        .right{
+            float: right;
+            width: 300px;
+            height: 100px;
+            font-size: 18px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+        }
+        
+        .nickname input{
+            width: 100px;
+            color: #333;
+        }
+    </style>
+    <!--[if lt IE 9]>
+      <script src='/js/html5shiv.min.js'></script>
+      <script src='/js/respond.min.js'></script>
+    <![endif]-->
+</head>
+
+<body>
+    <div class="nav text-right">
+        <a href="/">返回首页</a>
+        <a href="/user/logout">退出登录</a>
+    </div>
+    <h1 class="text-center">个人中心</h1>
+    <div class="box">
+        <div class="userinfo">
+            <div class="left">
+                <img src="<%= user.avatar %>" width="100px" height="100px">
+            </div>
+            <div class="right">
+                <div class="username">
+                    <span class="label">用户名:</span><span><%= user.username %></span>
+                </div>
+                <div class="nickname">
+                    <span class="label">昵称:</span><span><%= user.nickname %></span>
+                    <a href="javascript:;" onclick="mod('<%= user.nickname %>')">修改昵称</a>
+                    
+                </div>
+                <div class="text-right">
+                    <a href="">修改密码</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src='/js/jquery.min.js'></script>
+    <script src='/js/bootstrap.js'></script>
+    <script>
+        function mod(nickname){
+            $(".nickname").html(`<span class="label">昵称:</span>
+            <span><input type="text" value="${nickname}"></span>
+            <a href="javascript:;" onclick="updateNickname()")">确认修改</a>
+            <a href="/user/center")">取消</a>`)
+        }
+        function updateNickname() {
+            var nickname = $(".nickname").find("input").val().trim();
+            if(!nickname){
+                location.href=location.href
+                return;
+            }
+            $.ajax({
+                url:"/user/update",
+                data:{
+                    nickname:nickname
+                },
+                success:function(result){
+                    // if(result.status==1){
+                    //     alert(result.msg)
+                    // }else{
+                    //     alert(result.msg)
+                    //     location.href=location.href
+                    // }
+                    alert(result.msg)
+                    location.href=location.href
+                }
+            })
+        }
+    </script>
+
+</body>
+
+</html>

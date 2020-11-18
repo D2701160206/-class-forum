@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang='zh-cn'>
+
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <title></title>
+
+    <!-- Bootstrap -->
+    <link href='/css/bootstrap.css' rel='stylesheet'>
+    <style>
+        body {
+            background: url("/img/bg.jpg") no-repeat;
+            color: white;
+        }
+
+        a {
+            text-decoration: none;
+            color: lime;
+        }
+
+        .box {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 80%;
+            height: 400px;
+            /* background-color: #ccc; */
+            background-color: rgba(255, 255, 255, 0.1);
+            margin: 50px auto;
+        }
+
+        .form-horizontal {
+            width: 50%;
+        }
+
+        .col-sm-5 {
+            padding-top: 12px;
+            font-size: 16px;
+        }
+    </style>
+    <!--[if lt IE 9]>
+      <script src='/js/html5shiv.min.js'></script>
+      <script src='/js/respond.min.js'></script>
+    <![endif]-->
+</head>
+
+<body>
+    <h1 class="text-center">注册</h1>
+    <div class="box">
+        <dib class="form-horizontal">
+            <div class="form-group">
+                <label for="username" class="col-sm-3 control-label">用户名:</label>
+                <div class="col-sm-6">
+                    <input type="text" class="form-control" id="username" placeholder="只能字母开头的6-12位单词字符">
+                </div>
+                <div class="col-sm-3 control-label">
+                    <span></span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="password" class="col-sm-3 control-label">密码:</label>
+                <div class="col-sm-6">
+                    <input type="password" class="form-control" id="password" placeholder="6-12位">
+                </div>
+                <div class="col-sm-3 control-label">
+                    <span></span>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-offset-4 col-sm-2">
+                    <button class="btn btn-primary">注册</button>
+                </div>
+                <div class="col-sm-5">
+                    已有账号?点击<a href="/user/login">登录</a>
+                </div>
+            </div>
+        </dib>
+    </div>
+    <script src='/js/jquery.min.js'></script>
+    <script src='/js/bootstrap.js'></script>
+    <script>
+        var f_uname = false;  //开关,判定用户名是否可以发送
+        var f_pass = false;  //开关,判定密码是否可以发送
+        // 获得焦点时,请看看提示语
+        $("#username").on("focus",function(){$("span").html("");});
+        // 给用户名输入框绑定监听事件,检查用户名是否可用
+        $("#username").on("blur",function(){
+            // 获取输入的值
+            var username = $(this).val().trim();
+            if(username==""){
+                $("span").eq(0).html("用户名不能为空").css("color","red");
+                f_uname = false;
+                return;
+            }
+            // 用户名格式:包含字母数字下划线,且只能字母开头,6-12位
+            var reg = /^[a-zA-Z]\w{5,11}$/;
+            if(!reg.test(username)){
+                $("span").eq(0).html("用户名不合法").css("color","red");
+                f_uname = false;
+                return
+            }
+            // 用户名符合条件,发送请求验证是否已经存在
+            $.ajax({
+                url:"/user/check",
+                method:"post",
+                data:{
+                    username:username,
+                },
+                success:function(result){
+                    if(result.status==2){ //网络问题,弹窗提示
+                        alert(result.msg)
+                        f_uname = false;
+                        return;
+                    }
+                    if(result.status==1){ //已存在
+                        $("span").eq(0).html(result.msg).css("color","red");
+                        f_uname = false;
+                        return;
+                    }
+                    // 可以使用,去掉提示语,修改开关
+                    $("span").eq(0).html();
+                    f_uname = true;
+                }
+            })
+        })
+        // 验证密码 6-12
+        $("#password").on("input",function(){
+            var password = $(this).val().trim();
+            if(password==""){
+                $("span").eq(1).html("密码不能为空").css("color","red");
+                f_pass = false;
+                return;
+            }
+            if(password.length<6 || password.length>12){
+                $("span").eq(1).html("密码长度不正确").css("color","red");
+                f_pass = false;
+                return;
+            }
+            // 密码可以使用
+            $("span").eq(1).html("");
+            f_pass = true;
+        })
+        // 给按钮绑定单击事件,提交注册请求
+        $("button").on("click",function(){
+            if(f_pass&&f_pass){
+                var username = $("#username").val();
+                var password =  $("#password").val();
+                $.ajax({
+                    url:"/user/regist",
+                    method:"post",
+                    data:{
+                        username:username,
+                        password:password
+                    },
+                    success:function(result){
+                        if(result.status!=0){//失败
+                            alert(result.msg)
+                            return;
+                        }
+                        // 成功
+                        alert(result.msg);
+                        location.href = "/";
+                    }
+                })
+                return;
+            }
+            // 不符合发送请求的条件
+            alert("用户名或密码不合法");
+        })
+    </script>
+</body>
+
+</html>

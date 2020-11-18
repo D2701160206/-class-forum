@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang='zh-cn'>
+
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <title></title>
+
+    <!-- Bootstrap -->
+    <link href='/css/bootstrap.css' rel='stylesheet'>
+    <style>
+        body{
+            background: url("/img/bg.jpg") no-repeat;
+            color: white;
+        }
+        a{
+            text-decoration: none;
+            color: lime;
+        }
+        .box {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 80%;
+            height: 400px;
+            /* background-color: #ccc; */
+            background-color: rgba(255, 255, 255, 0.1);
+            margin: 50px auto;
+            color: white;
+        }
+
+        .form-horizontal {
+            width: 50%;
+        }
+
+        .col-sm-5 {
+            padding-top: 12px;
+            font-size: 16px;
+        }
+    </style>
+    <!--[if lt IE 9]>
+      <script src='/js/html5shiv.min.js'></script>
+      <script src='/js/respond.min.js'></script>
+    <![endif]-->
+</head>
+
+<body>
+    <h1 class="text-center">登录</h1>
+    <div class="box">
+        <div class="form-horizontal">
+            <div class="form-group">
+                <label for="username" class="col-sm-3 control-label">用户名:</label>
+                <div class="col-sm-6">
+                    <input type="text" class="form-control" id="username" placeholder="用户名">
+                </div>
+                <div class="col-sm-3 control-label">
+                    <span></span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="password" class="col-sm-3 control-label">密码:</label>
+                <div class="col-sm-6">
+                    <input type="password" class="form-control" id="password" placeholder="密码">
+                </div>
+                <div class="col-sm-3 control-label">
+                    <span></span>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-offset-4 col-sm-2">
+                    <button class="btn btn-primary">登录</button>
+                </div>
+                <div class="col-sm-5">
+                    没有账号?点击<a href="/user/regist">注册</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src='/js/jquery.min.js'></script>
+    <script src='/js/bootstrap.js'></script>
+
+    <script>
+        // 给按钮绑定单击事件
+        $("button").on("click", function () {
+            // 清空span的提示语
+            $("span").html("");
+            // 获取用户名和密码
+            var username = $("#username").val().trim();
+            var password = $("#password").val().trim();
+            // 如果用户名为空则红字提醒
+            if (username == "") {
+                $("span").eq(0).html("用户名不能为空").css("color", "red");
+                return;
+            }
+            // 如果密码为空则红字提醒
+            if (password == "") {
+                $("span").eq(1).html("密码不能为空").css("color", "red");
+                return;
+            }
+            // 用户名和密码都不为空,发送登录请求
+            $.ajax({
+                url: "/user/login",
+                method: "post",
+                data: {
+                    username: username,
+                    password: password
+                },
+                success: function (result) {
+                    if (result.status == 1) {
+                        alert(result.msg);
+                        return;
+                    }
+                    // 登录成功
+                    // alert(result.msg);
+                    // 跳转首页
+                    location.href = "/";
+                }
+            })
+
+
+        })
+    </script>
+
+</body>
+
+</html>
