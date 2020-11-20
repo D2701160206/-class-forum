@@ -1,5 +1,10 @@
 const router = require("express").Router();
+const fd = require("formidable")
+const sd = require("silly-datetime")
+const fs = require("fs")
+const gm = require("gm")
 const db = require("../model/mydb");
+const md5 = require("../model/myMD5.js");
 const User = db.User;
 
 // get 的/user/login请求,跳转到登录页面
@@ -12,7 +17,6 @@ router.get("/regist", function (req, res) {
     res.render("regist");
 })
 
-
 // post 的/user/login请求,处理登录
 router.post("/login", function (req, res) {
     var username = req.body.username;
@@ -20,7 +24,7 @@ router.post("/login", function (req, res) {
     // 判断用户名和密码是否正确
     var filter = {
         username: username,
-        password: password
+        password: md5.md5(password)
     }
     // 根据用户名密码查询是否正确
     db.findAll(User, filter, function (err, users) {
@@ -110,7 +114,7 @@ router.post("/regist", function (req, res) {
         // 设置用户的默认昵称为用户名
         var data = {}
         data.username = username; //用户名
-        data.password = password; //密码
+        data.password = md5.md5(password); //密码
         data.nickname = username; //昵称
         // 保存数据
         db.add(User, data, function (err) {
@@ -185,5 +189,117 @@ router.get("/update",function(req,res){
         res.send({status:0,msg:"修改成功"})
     })
 })
+
+// get /user/upload,跳转到上传头像页面
+router.get("/upload",function(req,res){
+    res.render("upload");
+})
+
+// post /user/upload,上传头像
+router.post("/upload",function(req,res){
+    var form = new fd.IncomingForm();
+    form.uploadDir = "./uploads";//临时保存路径
+    form.parse(req,function(err,fields,files){
+        if(err){
+            console.log(err);
+            res.render("error",{msg:"上传失败"});
+            return;
+        }
+        // 获取文件
+        var pic = files.pic;
+        // 获取文件的路径
+        var path = pic.path;
+        path = path.substring(path.indexOf("\\")+1)
+        // 跳转到剪切的页面
+        res.render("cut",{pic:path})
+        
+    })
+})
+
+// get /user/cut,剪切头像
+router.get("/cut",function(req,res){
+    var x = req.query.x;
+    var y = req.query.y;
+    var w = req.query.w;
+    var h = req.query.h;
+    var img = req.query.img;
+    // 设置图片的名称
+    var username = req.session.username;
+    var time = sd.format(new Date(),"YYYYMMDDHHmmss")
+    var picname = username+"_"+time;
+    // 当前路径,相对的是根目录
+    gm("./uploads"+img)
+    .crop(w,h,x,y)
+    // 用户的实际图像
+    .write("./avatars/"+picname,function(err){
+        if(err){
+            console.log(err);
+            res.send({status:1,msg:"剪切失败"})
+            return;
+        }
+        // 剪切成功,将新的数据保存到数据库中
+        var filter = {username:username}
+        var data = {avatar:"/"+picname}
+        db.modify(User,filter,data,function(err,raw){
+            if(err){
+                console.log(err);
+                res.send({status:1,msg:"修改失败"});
+                return;
+            }
+            // 修改数据库成功
+            console.log(raw);
+            res.send({status:0,msg:"修改成功"});
+        })
+    })
+})
+
+// get /user/changePwd,跳转到修改密码页面
+router.get("/changePwd",function(req,res){
+    res.render("changepwd")
+})
+
+// post /user/changePwd ,修改密码
+router.post("/changePwd",function(req,res){
+    var username = req.session.username;
+    var oldPwd = req.body.oldPwd;
+    var password = req.body.password
+    // 根据用户名查询密码
+    var filter = {
+        username:username,
+        password:md5.md5(oldPwd)
+    };
+    db.findAll(User,filter,function(err,users){
+        if(err){
+            console.log(err);
+            res.send({status:2,msg:"网络错误 ,修改失败"});
+            return;
+        }
+        if(users.length==0){//数据为空,没有查到数据
+            res.send({status:1,msg:"旧密码错误"})
+            return;
+        }
+        // 旧密码正确,将其修改为新密码
+        filter = {
+            username:username,
+        }
+        var data = {
+            password:md5.md5(password)//给新密码加密
+        }
+        db.modify(User,filter,data,function(err){
+            if(err){
+                console.log(err);
+                res.send({status:2,msg:"网络波动,修改失败"})
+                return;
+            }
+            // 修改成功
+            res.send({status:0,msg:"修改成功"});
+        })
+
+        
+    })
+    
+    
+})
+
 
 module.exports = router;

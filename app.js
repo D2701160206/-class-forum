@@ -21,7 +21,9 @@ app.use(session({
 app.use(express.urlencoded({extended:true}))
 
 // 设置根目录
-app.use(express.static("./public"))
+app.use(express.static("./public"));
+app.use(express.static("./uploads"));
+app.use(express.static("./avatars"))
 
 // 设置登录验证拦截器
 app.use(route.checkisLogin);
