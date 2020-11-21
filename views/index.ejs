@@ -351,8 +351,10 @@
                 return;
             }
             // 获取被禁用的上一页或下一页
-            var disble = $("ul.pagination li.disabled span").html();
-            if (pageText == disble) {
+            var $disble = $("ul.pagination li.disabled span");
+            var disble1 = $disble.eq(0).html();
+            var disble2 = $disble.eq(1).html();
+            if (pageText == disble1 || pageText == disble2  ) {
                 return;
             }
             // 跳转指定页面
